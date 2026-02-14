@@ -1,48 +1,60 @@
 import streamlit as st
-import time
+import random
 from PIL import Image
-from reel import call_gemini_with_images   # backend import
+from reel import call_gemini_for_reels
 
-st.title("🎵 Image to Bollywood Song Matcher")
+st.title("🎬 AI Reel Generator")
 
+# ---------- TEMPLATE SEARCH ----------
+
+keywords = ["Birthday", "Anniversary", "Love", "Holi", "Friendship", "Baby Shower"]
+
+if "selected_template" not in st.session_state:
+    st.session_state.selected_template = ""
+
+cols = st.columns(len(keywords))
+
+for i, key in enumerate(keywords):
+    if cols[i].button(key):
+        st.session_state.selected_template = key
+
+template_text = st.text_input(
+    "Template",
+    value=st.session_state.selected_template,
+    placeholder="Type custom reel idea..."
+)
+
+# ---------- IMAGE UPLOAD ----------
 uploaded_files = st.file_uploader(
-    "Upload 9 Images",
+    "Upload Images",
     type=["png", "jpg", "jpeg"],
     accept_multiple_files=True
 )
 
-if st.button("Submit"):
+# ---------- SUBMIT ----------
+if st.button("Generate Reel"):
 
-    if uploaded_files and len(uploaded_files) == 9:
+    if not uploaded_files or len(uploaded_files) < 4:
+        st.error("Upload at least 3 images.")
+        st.stop()
 
-        all_results = []
+    # Convert to PIL
+    pil_images = [Image.open(f) for f in uploaded_files]
 
-        # Convert uploaded files → PIL
-        pil_images = [Image.open(file) for file in uploaded_files]
+    # Random shuffle
+    # random.shuffle(pil_images)
+    
+    # Split → 4-5 images per reel
+    reels = []
+    i = 0
+    while i < len(pil_images):
+        reels.append(pil_images[i:i+5])
+        i += 5
 
-        # Process in batches of 3
-        for i in range(0, 9, 3):
+    st.write(f"🎞 Creating {len(reels)} reels...")
 
-            batch = pil_images[i:i+3]
+    # ---------- CALL BACKEND ----------
+    results = call_gemini_for_reels([pil_images], template_text)
 
-            st.write(f"🚀 Processing Batch {i//3 + 1}...")
-
-            # Backend function call
-            results = call_gemini_with_images(batch)
-
-            # ✅ Replace index with filename
-            for j, item in enumerate(results):
-                item["filename"] = uploaded_files[i + j].name
-                item.pop("image_index", None)  # remove old index
-                all_results.append(item)
-
-            # Wait between API calls (except last)
-            if i < 6:
-                st.write("⏳ Waiting 1 minute before next API call...")
-                time.sleep(60)
-
-        st.success("✅ All 9 Images Processed")
-        st.json(all_results)
-
-    else:
-        st.error("Please upload exactly 9 images.")
+    st.success("✅ Reel generation completed")
+    st.json(results)

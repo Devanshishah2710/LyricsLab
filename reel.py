@@ -5,38 +5,49 @@ import re
 from dotenv import load_dotenv
 
 load_dotenv()
-
-# ✅ correct env variable use
 genai.configure(api_key=os.getenv("apikey"))
 
-PROMPT = """
-Analyze the attached 3 images.
-For EACH image, identify the perfect Bollywood song (Hindi).
+PROMPT_BASE = """
+You will receive multiple groups of images.
+Each group of images represents ONE Instagram reel.
+
+Your task:
+For EACH reel (image group), identify ONE perfect Bollywood song (Hindi) that best fits ALL images in that group.
 
 CRITICAL INSTRUCTION FOR LYRICS:
-- You MUST quote the EXACT EXISTING lyrics from the real song.
-- Do NOT write lyrics based on what you see in the image (e.g., if there is a horse, do not write lyrics about horses unless the real song has them).
-- If you don't know the exact lyrics, choose a different song.
+- You MUST quote the EXACT, REAL, existing lyrics from the original Bollywood song.
+- Do NOT generate or modify lyrics based on the visual content.
+- If you are not 100% sure about the exact real lyrics, choose a different song.
+- The selected lyrics MUST meaningfully relate to the overall mood/theme of ALL images in that reel.
+- Do NOT repeat the same song for different reels.
 
-Return result as a JSON array with exactly 3 objects:
+Output requirements:
+- Return ONLY valid raw JSON.
+- Return one object per reel in a JSON array.
+- Do NOT include explanations, markdown, or extra text.
+
+JSON format:
 [
   {
-    "image_index": 1, 
-    "song_title": "Title - Movie",
-    "lyrics": "Real lyrics here (Hindi/Hinglish)"
+    "reel_number": 1,
+    "song_title": "Song Title - Movie Name",
+    "lyrics": "Exact real lyrics in Hindi or Hinglish"
   }
 ]
-Output ONLY raw JSON.
 """
 
-def call_gemini_with_images(pil_images):
+def call_gemini_for_reels(reel_image_groups, template):
 
-    content_payload = [PROMPT] + pil_images
+    content = [PROMPT_BASE + f"\nReel theme: {template}"]
+
+    # Attach ALL images of ALL reels in ONE call
+    for group in reel_image_groups:
+        content.extend(group)
+
     model = genai.GenerativeModel("gemini-2.5-flash")
 
-    response = model.generate_content(content_payload)
+    response = model.generate_content(content)
 
-    # ✅ robust JSON extraction
     clean_text = re.sub(r"```json|```", "", response.text).strip()
     match = re.search(r"\[.*\]", clean_text, re.DOTALL)
 

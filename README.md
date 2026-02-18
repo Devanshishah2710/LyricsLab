@@ -5,18 +5,18 @@ This is an automation program that, when executed, automatically selects the bes
 
 #KeyFeatures
 1. Smart AI Quality Filter
-2. Context-Aware Music Matching
+2. Context-Aware Music Matching 
 3. Professional Video Rendering
 4. High-Speed & Data Saving Engine
 
-#Install_Required_Libraries:
-pip install transformers torch pillow moviepy yt-dlp imageio-ffmpeg 
+#creat the .env folder 
+GEMINI_API_KEY=apikey
 
 #requirement.txt(dependecy list)
 pip install -r requirements.txt (run command in the terminal)
 
 #Run the Script:(run command in the terminal)
-1. python reels.py 
+streamlit run app.py
 
 #Author
 devanshishah

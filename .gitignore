@@ -26,6 +26,4 @@ venv/
 models/
 .cache/
 
-ffmpeg.exe
-ffprobe.exe
 .env

@@ -2,72 +2,97 @@ import streamlit as st
 from PIL import Image
 from reel import call_gemini_for_reels
 
-st.title("🎬 AI Reel Generator")
+st.set_page_config(
+    page_title="Visual Emotion Based Bollywood Lyrics Matching System",
+    page_icon="🎬",
+    layout="centered"
+)
 
-# ---------- KEYWORD SEARCH ----------
-st.subheader("🔎 Search your keyword")
+st.markdown(
+    """
+    <h1 style='text-align: center;'>
+    🎬 Visual Emotion Based Bollywood Lyrics Matching System
+    </h1>
+    <p style='text-align: center; color: grey;'>
+    Create one perfect Bollywood reel song from your memories 💖
+    </p>
+    """,
+    unsafe_allow_html=True
+)
+
+st.divider()
+
+# ---------- KEYWORDS ----------
+st.subheader("🔎 Search or Select Reel Keywords")
 
 keywords = ["Birthday", "Anniversary", "Love", "Holi", "Friendship", "Baby Shower"]
 
 if "selected_keyword" not in st.session_state:
     st.session_state.selected_keyword = ""
 
-# ---- Search box FIRST ----
+# Text input (multiple keywords allowed)
 keyword_text = st.text_input(
-    "Keyword",
+    "Enter keywords (you can type multiple separated by comma)",
     value=st.session_state.selected_keyword,
-    placeholder="Type custom reel idea..."
+    placeholder="Example: love, wedding, memories"
 )
 
-# ---- Keyword buttons grid (equal & clean) ----
-cols = st.columns(3, gap="medium")
+# Keyword buttons grid
+cols = st.columns(3)
 
 for i, key in enumerate(keywords):
-    col = cols[i % 3]
-    with col:
+    with cols[i % 3]:
         if st.button(key, use_container_width=True):
-            st.session_state.selected_keyword = key
+            if keyword_text:
+                st.session_state.selected_keyword = keyword_text + ", " + key
+            else:
+                st.session_state.selected_keyword = key
             st.rerun()
 
-# ---------- DURATION ----------
-st.subheader("⏱ Select Reel Duration")
-duration = st.radio("Reel seconds", ["10 sec", "20 sec", "30 sec"], horizontal=True)
+st.divider()
 
 # ---------- IMAGE UPLOAD ----------
+st.subheader("📸 Upload Images (Max 5)")
+
 uploaded_files = st.file_uploader(
-    "Upload MAX 5 Images",
+    "",
     type=["png", "jpg", "jpeg"],
     accept_multiple_files=True
 )
 
-# ---------- SINGLE PAGE IMAGE PREVIEW ----------
+# ---------- IMAGE PREVIEW ----------
 if uploaded_files:
-    st.subheader("Selected Images")
+    st.markdown("### 🖼 Selected Images")
     cols = st.columns(len(uploaded_files))
     for i, file in enumerate(uploaded_files):
         img = Image.open(file)
         cols[i].image(img, use_container_width=True)
 
-# ---------- SUBMIT ----------
-if st.button("Generate Reel"):
+st.divider()
 
-    if not uploaded_files:
+# ---------- GENERATE BUTTON ----------
+if st.button("🚀 Generate Reel", use_container_width=True):
+
+    if not keyword_text:
+        st.warning("Please enter at least one keyword.")
+
+    elif not uploaded_files:
         st.warning("Please upload at least 1 image.")
 
     elif len(uploaded_files) > 5:
-        st.error("You can select maximum 5 photos only for one reel.")
+        st.error("Maximum 5 images allowed.")
 
     else:
-        st.success(f"{len(uploaded_files)} photos selected successfully!")
+        st.success(f"{len(uploaded_files)} images selected successfully!")
 
-        # Convert to PIL
         pil_images = [Image.open(f) for f in uploaded_files[:5]]
 
-        st.write("🎞 Creating 1 reel from all images...")
-
-        # ---------- CALL BACKEND ----------
-        results = call_gemini_for_reels(pil_images, keyword_text, duration)
+        with st.spinner("🎵 Creating your perfect Bollywood reel..."):
+            results = call_gemini_for_reels(pil_images, keyword_text)
 
         st.success("✅ Reel generation completed")
-        st.subheader(f"🎵 {results[0]['reel_name']}")
-        st.json(results)
+
+        st.markdown(f"## 🎵 {results[0]['reel_name']}")
+        st.markdown(f"### 🎬 {results[0]['song_title']}")
+        st.markdown("#### 🎶 Lyrics")
+        st.write(results[0]["lyrics"])

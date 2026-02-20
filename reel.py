@@ -4,50 +4,47 @@ import json
 import re
 from dotenv import load_dotenv
 
-load_dotenv()
-genai.configure(api_key=os.getenv("apikey"))
+load_dotenv(dotenv_path=".env")
+api_key = os.getenv("GOOGLE_API_KEY")
+
+if not api_key:
+    raise ValueError("GOOGLE_API_KEY not found")
+genai.configure(api_key=api_key)
+
 
 PROMPT_BASE = """
 You will receive multiple images.
 All images together represent ONE Instagram reel.
 
 Your task:
-For EACH reel (image group), identify ONE perfect Bollywood song (Hindi) that best fits ALL images in that group.
+Identify ONE perfect Bollywood song (Hindi) that best fits ALL images.
 
 CRITICAL INSTRUCTION FOR LYRICS:
 - You MUST quote the EXACT, REAL, existing lyrics from the original Bollywood song.
-- Do NOT generate or modify lyrics based on the visual content.
-- If you are not 100% sure about the exact real lyrics, choose a different song.
-- The selected lyrics MUST meaningfully relate to the overall mood/theme of ALL images in that reel.
-- Do NOT repeat the same song for different reels.
-- The selected lyrics MUST also match ALL provided reel theme keywords.
-- The length of the lyrics should approximately match the requested reel duration.
+- Do NOT generate or modify lyrics.
+- If unsure about exact lyrics, choose another song.
+- Lyrics must match ALL provided keywords.
+- Do NOT include explanations.
 
-Output requirements:
-- Return ONLY valid raw JSON.
-- Return one object per reel in a JSON array.
-- Do NOT include explanations, markdown, or extra text.
+Return ONLY valid raw JSON in this format:
 
-JSON format:
 [
   {
-    "reel_name": "Short descriptive reel name based on keywords",
+    "reel_name": "Short reel name based on keywords",
     "reel_number": 1,
     "song_title": "Song Title - Movie Name",
-    "lyrics": "Exact real lyrics in Hindi or Hinglish"
+    "lyrics": "Exact real lyrics"
   }
 ]
 """
 
-def call_gemini_for_reels(pil_images, keyword, duration):
+def call_gemini_for_reels(pil_images, keyword):
 
     content = [
         PROMPT_BASE
         + f"\nReel theme keywords: {keyword}"
-        + f"\nRequested reel duration: {duration}"
     ]
 
-    # attach images
     content.extend(pil_images)
 
     model = genai.GenerativeModel("gemini-2.5-flash")

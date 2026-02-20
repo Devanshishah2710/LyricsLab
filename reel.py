@@ -11,7 +11,6 @@ if not api_key:
     raise ValueError("GOOGLE_API_KEY not found")
 genai.configure(api_key=api_key)
 
-
 PROMPT_BASE = """
 You will receive multiple images.
 All images together represent ONE Instagram reel.
@@ -24,6 +23,7 @@ CRITICAL INSTRUCTION FOR LYRICS:
 - Do NOT generate or modify lyrics.
 - If unsure about exact lyrics, choose another song.
 - Lyrics must match ALL provided keywords.
+- Lyrics length should approximately match the requested duration.
 - Do NOT include explanations.
 
 Return ONLY valid raw JSON in this format:
@@ -38,11 +38,12 @@ Return ONLY valid raw JSON in this format:
 ]
 """
 
-def call_gemini_for_reels(pil_images, keyword):
+def call_gemini_for_reels(pil_images, keyword, duration):
 
     content = [
         PROMPT_BASE
         + f"\nReel theme keywords: {keyword}"
+        + f"\nRequested reel duration: {duration}"
     ]
 
     content.extend(pil_images)

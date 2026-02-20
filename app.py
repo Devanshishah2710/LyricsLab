@@ -30,14 +30,12 @@ keywords = ["Birthday", "Anniversary", "Love", "Holi", "Friendship", "Baby Showe
 if "selected_keyword" not in st.session_state:
     st.session_state.selected_keyword = ""
 
-# Text input (multiple keywords allowed)
 keyword_text = st.text_input(
     "Enter keywords (you can type multiple separated by comma)",
     value=st.session_state.selected_keyword,
     placeholder="Example: love, wedding, memories"
 )
 
-# Keyword buttons grid
 cols = st.columns(3)
 
 for i, key in enumerate(keywords):
@@ -48,6 +46,17 @@ for i, key in enumerate(keywords):
             else:
                 st.session_state.selected_keyword = key
             st.rerun()
+
+st.divider()
+
+# ---------- DURATION ----------
+st.subheader("⏱ Reel Duration")
+
+duration = st.radio(
+    "",
+    ["10 sec", "20 sec", "30 sec"],
+    horizontal=True
+)
 
 st.divider()
 
@@ -88,7 +97,7 @@ if st.button("🚀 Generate Reel", use_container_width=True):
         pil_images = [Image.open(f) for f in uploaded_files[:5]]
 
         with st.spinner("🎵 Creating your perfect Bollywood reel..."):
-            results = call_gemini_for_reels(pil_images, keyword_text)
+            results = call_gemini_for_reels(pil_images, keyword_text, duration)
 
         st.success("✅ Reel generation completed")
 

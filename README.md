@@ -1,22 +1,127 @@
-#pythonproject
+# 🎬 AI Reel Generator
 
-#Description
-This is an automation program that, when executed, automatically selects the best 10 photos from multiple images and creates 10 separate reels, where each reel is generated from a single selected photo.
+An AI-powered Instagram Reel Generator that analyzes uploaded images and selects the **most suitable Bollywood song with exact real lyrics** using Google Gemini.
 
-#KeyFeatures
-1. Smart AI Quality Filter
-2. Context-Aware Music Matching 
-3. Professional Video Rendering
-4. High-Speed & Data Saving Engine
+Built with ❤️ using Streamlit + Gemini API
 
-#creat the .env folder 
-GEMINI_API_KEY=apikey
+---
 
-#requirement.txt(dependecy list)
-pip install -r requirements.txt (run command in the terminal)
+## 📌 Project Overview
 
-#Run the Script:(run command in the terminal)
+This application allows users to:
+
+- Upload up to 5 images
+- Select or enter a reel theme
+- Choose reel duration
+- Generate a perfectly matched Bollywood song
+- Get exact original lyrics (no AI-generated fake lyrics)
+- Receive clean JSON output
+
+All images are treated as **ONE reel story**, and AI selects only **one best matching song**.
+
+---
+
+# ✨ Features
+
+## 🔎 Smart Keyword System
+- Predefined theme buttons:
+  - Birthday
+  - Anniversary
+  - Love
+  - Holi
+  - Friendship
+  - Baby Shower
+- Custom keyword input option
+- One-click theme selection
+
+## ⏱ Duration Selection
+- 10 seconds
+- 20 seconds
+- 30 seconds
+- Lyrics length approximately matches duration
+
+## 🖼 Image Handling
+- Upload up to 5 images
+- Live preview before submission
+- All images analyzed together as one reel
+
+## 🤖 AI Processing
+- Uses `gemini-2.5-flash`
+- Understands overall mood of images
+- Matches song with theme + mood
+- Returns exact real Bollywood lyrics
+- Avoids repeating same song
+
+## 📦 Clean Output
+- Returns raw valid JSON only
+- No extra explanation
+- Ready for backend/video pipeline use
+
+---
+
+# 🛠 Tech Stack
+
+- Python
+- Streamlit
+- Google Generative AI (Gemini)
+- Pillow
+- python-dotenv
+
+---
+
+# 📂 Project Structure
+├── app.py # Streamlit Frontend
+├── reel.py # Gemini Backend Logic
+├── .env # API Key (Not pushed)
+├── requirements.txt
+└── README.md
+
+
+## 1️⃣ Clone the Repository
+
+```bash
+git clone https://github.com/yourusername/your-repository-name.git
+cd your-repository-name
+```
+
+# Windows
+```
+python -m venv venv
+venv\Scripts\activate
+```
+
+# Mac 
+
+```
+python3 -m venv venv
+source venv/bin/activate 
+```
+
+# If requirements.txt exists:
+
+```
+pip install -r requirements.txt
+```
+
+# install manually:
+
+```
+pip install streamlit google-generativeai pillow python-dotenv
+```
+
+# create a .env file in the root directory:
+
+```
+apikey=YOUR_GEMINI_API_KEY
+```
+
+```
+.env
+venv/
+__pycache__/
+```
+
+# Run the Application
+```
 streamlit run app.py
-
-#Author
-devanshishah
+```

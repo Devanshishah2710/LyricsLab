@@ -4,23 +4,28 @@ from reel import call_gemini_for_reels
 import time
 import base64
 
-st.markdown(
-    """
-    <h1 style='text-align:center; font-size:48px; margin:10px 0px; color:black;'>
-        LyricsLab
-    </h1>
-    <p style='text-align:center; color:#555; margin:0px 0px 15px 0px; font-size:18px;'>
-        Find Bollywood lyrics matching your emotions
-    </p>
-    """,
-    unsafe_allow_html=True
-)
 # ---------- PAGE CONFIG ----------
 st.set_page_config(
     page_title="LyricsLab",
-    page_icon=None,
-    layout="centered"
+    layout="wide"
 )
+
+# ---------- REMOVE EXTRA TOP SPACE ----------
+st.markdown("""
+<style>
+.block-container {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+}
+</style>
+""", unsafe_allow_html=True)
+
+# ---------- TITLE ----------
+st.markdown(
+    "<h1 style='text-align:center; margin:0; font-size:42px;'>LyricsLab</h1>",
+    unsafe_allow_html=True
+)
+
 # ---------- BACKGROUND IMAGE FUNCTION ----------
 def set_bg_image(image_file):
     with open(image_file, "rb") as f:
@@ -37,7 +42,6 @@ def set_bg_image(image_file):
         background-attachment: fixed;
     }}
 
-    /* White transparent overlay */
     .main {{
         background-color: rgba(255, 255, 255, 0.75);
         padding: 20px;
@@ -48,123 +52,127 @@ def set_bg_image(image_file):
 
     st.markdown(page_bg_img, unsafe_allow_html=True)
 
-# 👇 Background call
 set_bg_image("background.jpg")
-# ---------- TITLE ----------
-st.markdown("""
-<style>
 
-/* Horizontal radio spacing reduce */
-div[role="radiogroup"] > label {
-    margin-right: 4px !important;   /* default karta ochhu */
-}
+# ---------- PAGE LAYOUT ----------
+left_col, right_col = st.columns([1, 1], gap="large")
 
-/* Label text spacing tight */
-div[role="radiogroup"] label p {
-    margin: 0px !important;
-}
+# ================= LEFT SIDE (INPUT) =================
+with left_col:
 
-/* Whole radio section niche no gap ochho */
-.stRadio {
-    margin-bottom: 0.3rem !important;
-}
+    st.subheader("Search or Select Lyrics Keywords")
 
-</style>
-""", unsafe_allow_html=True)
+    keywords = ["Birthday", "Anniversary", "Love", "Holi", "Friendship", "Baby Shower"]
 
-# ---------- KEYWORDS ----------
-st.subheader("Search or Select Lyrics Keywords")
+    if "selected_keyword" not in st.session_state:
+        st.session_state.selected_keyword = ""
 
-keywords = ["Birthday", "Anniversary", "Love", "Holi", "Friendship", "Baby Shower"]
+    keyword_text = st.text_input(
+        "",
+        value=st.session_state.selected_keyword,
+        placeholder="love, wedding, memories"
+    )
 
-if "selected_keyword" not in st.session_state:
-    st.session_state.selected_keyword = ""
+    cols = st.columns(3)
 
-keyword_text = st.text_input(
-    "", 
-    value=st.session_state.selected_keyword,
-    placeholder="Example: love, wedding, memories"
-)
+    for i, key in enumerate(keywords):
+        with cols[i % 3]:
+            if st.button(key, use_container_width=True):
+                if keyword_text:
+                    st.session_state.selected_keyword = keyword_text + ", " + key
+                else:
+                    st.session_state.selected_keyword = key
+                st.rerun()
 
-cols = st.columns(3)
+    st.markdown("### Lyrics Duration")
 
-for i, key in enumerate(keywords):
-    with cols[i % 3]:
-        if st.button(key, use_container_width=True):
-            if keyword_text:
-                st.session_state.selected_keyword = keyword_text + ", " + key
-            else:
-                st.session_state.selected_keyword = key
-            st.rerun()
+    duration = st.radio(
+        "",
+        ["10 sec", "20 sec", "30 sec"],
+        horizontal=True
+    )
 
-# ---------- DURATION ----------
-st.markdown(
-    "<h3 style='margin-bottom:0px;'>Lyrics Duration</h3>",
-    unsafe_allow_html=True
-)
-duration = st.radio(
-    "", ["10 sec", "20 sec", "30 sec"],
-    horizontal=True
-)
+    st.subheader("Upload Images (Max 5)")
 
-# ---------- IMAGE UPLOAD ----------
-st.subheader("Upload Images (Max 5)")
+    uploaded_files = st.file_uploader(
+        "",
+        type=["png", "jpg", "jpeg"],
+        accept_multiple_files=True
+    )
 
-uploaded_files = st.file_uploader(
-    "",
-    type=["png", "jpg", "jpeg"],
-    accept_multiple_files=True
-)
+    generate_btn = st.button("Generate Lyrics", use_container_width=True)
 
-# ---------- IMAGE PREVIEW ----------
-if uploaded_files:
-    st.markdown("Selected Images")
-    cols = st.columns(len(uploaded_files))
-    for i, file in enumerate(uploaded_files):
-        img = Image.open(file)
-        cols[i].image(img, use_container_width=True)
+# ================= RIGHT SIDE (OUTPUT) =================
+with right_col:
 
-# ---------- GENERATE BUTTON ----------
-if st.button("Generate Lyrics", use_container_width=True):
+    st.markdown(
+        "<h3 style='text-align:center; margin-bottom:15px;'>Generated Output</h3>",
+        unsafe_allow_html=True
+    )
 
-    if not keyword_text:
-        st.warning("Please enter at least one keyword.")
+    # 🔥 Show selected images instantly (only once)
+    if uploaded_files:
+        st.markdown("#### 🎬 Selected Reel Images")
 
-    elif not uploaded_files:
-        st.warning("Please upload at least 1 image.")
+        img_cols = st.columns(len(uploaded_files))
+        for i, file in enumerate(uploaded_files[:5]):
+            img = Image.open(file)
+            img_cols[i].image(img, width=160)
 
-    elif len(uploaded_files) > 5:
-        st.error("Maximum 5 images allowed.")
+    # 👇 Generate logic
+    if generate_btn:
 
-    else:
+        if not keyword_text:
+            st.warning("Please enter at least one keyword.")
 
-        if "api_calls" not in st.session_state:
-            st.session_state.api_calls = []
+        elif not uploaded_files:
+            st.warning("Please upload at least 1 image.")
 
-        current_time = time.time()
+        elif len(uploaded_files) > 5:
+            st.error("Maximum 5 images allowed.")
 
-        # remove calls older than 60 seconds
-        st.session_state.api_calls = [
-            t for t in st.session_state.api_calls
-            if current_time - t < 60
-        ]
+        else:
 
-        if len(st.session_state.api_calls) >= 5:
-            st.error("API limit reached. Please wait before generating again.")
-            st.stop()
+            if "api_calls" not in st.session_state:
+                st.session_state.api_calls = []
 
-        pil_images = [Image.open(f) for f in uploaded_files[:5]]
+            current_time = time.time()
 
-        with st.spinner("Processing..."):
-            try:
-                results = call_gemini_for_reels(pil_images, keyword_text, duration)
-            except ValueError as e:
-                st.error(str(e))
+            st.session_state.api_calls = [
+                t for t in st.session_state.api_calls
+                if current_time - t < 60
+            ]
+
+            if len(st.session_state.api_calls) >= 5:
+                st.error("API limit reached. Please wait before generating again.")
                 st.stop()
 
-        st.session_state.api_calls.append(current_time)
+            pil_images = [Image.open(f) for f in uploaded_files[:5]]
 
-        st.markdown(f"## {results[0]['reel_name']}")
-        st.markdown(f"### {results[0]['song_title']}")
-        st.markdown("Lyrics")
-        st.write(results[0]["lyrics"])
+            with st.spinner("Processing..."):
+                try:
+                    results = call_gemini_for_reels(pil_images, keyword_text, duration)
+                except ValueError as e:
+                    st.error(str(e))
+                    st.stop()
+
+            st.session_state.api_calls.append(current_time)
+
+            # 🔥 Lyrics Output Card
+            st.markdown("<div class='output-card'>", unsafe_allow_html=True)
+
+            st.markdown(
+                f"<h2 style='margin-bottom:5px;'>{results[0]['reel_name']}</h2>",
+                unsafe_allow_html=True
+            )
+
+            st.markdown(
+                f"<p style='color:#666; font-weight:600;'>{results[0]['song_title']}</p>",
+                unsafe_allow_html=True
+            )
+
+            st.markdown("<hr style='margin:15px 0;'>", unsafe_allow_html=True)
+
+            st.write(results[0]["lyrics"])
+
+            st.markdown("</div>", unsafe_allow_html=True)

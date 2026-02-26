@@ -10,15 +10,6 @@ st.set_page_config(
     layout="wide"
 )
 
-# ---------- REMOVE EXTRA TOP SPACE ----------
-st.markdown("""
-<style>
-.block-container {
-    padding-top: 1rem;
-    padding-bottom: 1rem;
-}
-</style>
-""", unsafe_allow_html=True)
 
 # ---------- TITLE ----------
 st.markdown(

@@ -1,4 +1,4 @@
-# 🎬 Visual Emotion Based Bollywood Lyrics Matching System
+# 🎬 LycricsLab
 
 
 An AI-powered Instagram Reel Generator that analyzes uploaded images and selects the **most suitable Bollywood song with exact real lyrics** using Google Gemini.

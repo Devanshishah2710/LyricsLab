@@ -1,4 +1,4 @@
-# 🎬 LycricsLab
+# 🎬 LyricsLab
 
 
 An AI-powered Instagram Reel Generator that analyzes uploaded images and selects the **most suitable Bollywood song with exact real lyrics** using Google Gemini.
@@ -39,7 +39,6 @@ All images are treated as **ONE reel story**, and AI selects only **one best mat
 - 10 seconds
 - 20 seconds
 - 30 seconds
-- Lyrics length approximately matches duration
 
 ## 🖼 Image Handling
 - Upload up to 5 images
